@@ -5,12 +5,12 @@ import pickle
 import numpy as np
 
 class face_recog:
-    def __init__(self,filename, frames, pickle_path) :
+    def __init__(self, filename, frames, pickle_path) :
         self.filename = filename
         self.pickle_path = pickle_path
         self.frames = frames
-        with open('pickle_path', 'rb') as file:
-            known_face_encodings = pickle.load(file)
+        with open(self.pickle_path, 'rb') as file:
+            self.known_face_encodings = pickle.load(file)
         self.students = {
             'Dinesh' : '213J1A4267',
             'Ritesh' : '213J1A4280',
@@ -39,7 +39,6 @@ class face_recog:
         for filename in os.listdir(self.frames):
             if filename.lower().endswith('.jpg'):
                 image_path = os.path.join(self.frames, filename)
-                self.FACES = self.load_faces(image_path)
                 image_paths.append(image_path)
         return image_paths
     
@@ -55,12 +54,12 @@ class face_recog:
             face_encodings = fr.face_encodings(frame, face_locations)
             for face_encoding in face_encodings:
                 final_face.append(face_encoding)
-            with open('video_face_encodings.pkl', 'wb') as file:
-                pickle.dump(final_face, file)
-            print(f"Extracted {len(final_face)} faces and encoded to {video_face_encodings}")
+        with open('video_face_encodings.pkl', 'wb') as file:
+            pickle.dump(final_face, file)
+        print(f"Extracted {len(final_face)} faces and encoded to {'video_face_encodings.pkl'}")
 
     def cosine_similarity(vector_a, vector_b):
-        dot_product = np.dot(vector_a, vector_b)
+        dot_product = np.dot(vector_a, vector_b)    
         magnitude_a = np.linalg.norm(vector_a)
         magnitude_b = np.linalg.norm(vector_b)
 
@@ -72,19 +71,15 @@ class face_recog:
         return cosine_similarity_value
 
 
-    def compare_faces(self,video_face_encodings, known_face_encodings):
+    def compare_faces(self,video_face_encodings):
         similarities = []
         nec = []
         student_names = []
         for y in video_face_encodings:
-            for x in known_face_encodings:
-                similarity = cosine_similarity(y, x)
+            for x in self.known_face_encodings:
+                similarity = self.cosine_similarity(y, x)
                 nec.append(similarity)
             similarities.append(nec)
         for x in similarities:
             student_names.append(self.students.keys[np.argmax[x]])
         return student_names
-
-
-
-
