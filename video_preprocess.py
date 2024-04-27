@@ -2,6 +2,7 @@ import cv2 as cv
 import os
 
 class video_preprocessing:
+  string =""
   def __init__(self, directory, video_path):
     self.directory = directory
     self.video = video_path
@@ -20,8 +21,8 @@ class video_preprocessing:
         if not cap.isOpened():
           raise IOError("Error opening video!")
       except IOError as e:
-        print(f"IOError: {e}")
-        return
+        string=f"IOError: {e}"
+        return False
 
     fps = cap.get(cv.CAP_PROP_FPS)
     frame_count = 0
@@ -30,7 +31,7 @@ class video_preprocessing:
         ret, frame = cap.read()
 
         if not ret:
-            print("Can't receive frame (stream end?). Exiting...")
+            string="Can't receive frame (stream end?). Exiting...\n"
             break
 
         # Extracting one frame every 1 second (assuming constant FPS)
@@ -40,7 +41,8 @@ class video_preprocessing:
             extracted_frame_count += 1
 
     frame_count += 1
-    print(f"Extracted {extracted_frame_count} frames to {self.directory}")
+    string+=f"Extracted {extracted_frame_count} frames to {self.directory}"
+    return True
 
 
 

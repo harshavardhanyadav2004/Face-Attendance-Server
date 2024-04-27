@@ -57,6 +57,8 @@ class face_recog:
         with open('video_face_encodings.pkl', 'wb') as file:
             pickle.dump(final_face, file)
         print(f"Extracted {len(final_face)} faces and encoded to {'video_face_encodings.pkl'}")
+        return final_face
+        
 
     def cosine_similarity(vector_a, vector_b):
         dot_product = np.dot(vector_a, vector_b)    

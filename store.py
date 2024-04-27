@@ -1,4 +1,3 @@
-
 import mysql.connector
 import numpy as np
 students ={'Dinesh': '213J1A4267',
