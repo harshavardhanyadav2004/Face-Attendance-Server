@@ -1,5 +1,5 @@
 
-import mysql.connector
+import sqlite3
 from flask import *
 from flask_mail import *
 from VideoPreoprocess import VideoPreprocessor
@@ -26,17 +26,19 @@ def uploadStudentForm():
          if fetchFromDataBase(roll_no):
              return jsonify("Already Present in the DataBase")
          new_student_encoding = FaceRecognition.load_new_student(image_path)
-         saveIntoDataBase(roll_no,name,new_student_encoding)
-         return url_for('upload')
+         if saveIntoDataBase(roll_no,name,new_student_encoding):
+              return url_for('upload')
+         return jsonify("Error in Details")
 def saveIntoDataBase(roll,name,student_encoding):
-    connection = mysql.connector.connect(host='localhost',user='root',passwd ='Harsha@2004',database = 'Attendees')
-    cursor = connection.cursor()
-    try:
-        cursor.execute("INSERT INTO USERS VALUES (%s,%s,%s)",(roll,name,"/".join(student_encoding)))
-        connection.commit()
-    except:
-        connection.rollback()
-        return jsonify('Error in storing into DataBase')
+    with sqlite3.connect('Attendance.db') as conn: 
+        cursor = conn.cursor()
+        encoded_string = "/".join([str(i) for i in student_encoding])
+        try:
+          cursor.execute('''INSERT INTO USERS (ROLL_NO ,NAME,FACE_ENCODINGS ) VALUES (?,?,?)''',(roll,name,encoded_string))
+          conn.commit()
+        except:
+           return False 
+    return True   
 @app.route("/upload",methods = ['POST'])
 def upload():
     if 'video' not in request.files:
@@ -55,13 +57,18 @@ def upload():
         return jsonify("Error in emptying the folder")
     return jsonify("inavalid file type")
 def fetchFromDataBase(roll_no):
-    connection = mysql.connector.connect(host = 'localhost',user = 'root',passwd = 'Harsha@2004',database = 'Attendees')
-    cursor = connection.cursor()
-    cursor.execute("SELECT * FROM USERS")
-    for i in cursor:
-        if roll_no in i :
-            return True
-    return False
+    with sqlite3.connect('Attendance.db') as conn:
+        cursor = conn.cursor()
+        cursor.execute('''SELECT * FROM USERS ''')
+        only_roll_list = [ i[0] for i in cursor]
+        if roll_no in only_roll_list:
+            return True 
+        return False
+def create_Table_inSqlite():
+    with sqlite3.connect('Attendance.db') as conn:
+        cursor = conn.cursor()
+        cursor.execute('''CREATE TABLE USERS (ROLL_NO VARCHAR(255) , NAME VARCHAR(255) , FACE_ENCODINGS TEXT(16000))''')
+        print("SuccessFully Created The Table")
 if __name__ == '__main__':
     app.run(debug=True)
     
